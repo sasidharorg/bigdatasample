@@ -1,0 +1,37 @@
+from pyspark import SparkContext
+from bs4 import BeautifulSoup
+
+
+def extract_data_between_tags(html_file, tag_name):
+    # Initialize SparkContext
+    sc = SparkContext.getOrCreate()
+
+    # Read the file as an RDD
+    rdd = sc.textFile(html_file)
+
+    # Collect RDD into a single HTML content string
+    html_content = "\n".join(rdd.collect())
+
+    # Parse the HTML content
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Extract data between the specified tags
+    data = []
+    for tag in soup.find_all(tag_name):
+        data.append(tag.text)
+
+    # Return as an RDD
+    extracted_data_rdd = sc.parallelize(data)
+    return extracted_data_rdd
+
+
+if _name_ == "_main_":
+    name_to_func = "DE Class"
+    print(name_to_func)
+
+    file_name = "/home/sasi/Datafiles/wizard1.txt"  # Replace with your HTML file name
+    tag_to_extract = "title"  # Replace with the tag you want to extract data from
+    extracted_data = extract_data_between_tags(file_name, tag_to_extract)
+
+    for pageName in extracted_data.collect():  # Collect the RDD and print each element
+        print(pageName)
